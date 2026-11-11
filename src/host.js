@@ -121,7 +121,7 @@ export const brickMosaicTool = {
         return result(true, '档案库是空的。用户在面板算完马赛克后点「💾 存到作品档案」即可入库。')
       }
       return result(true, `共 ${all.length} 个作品：`,
-        all.map((p) => `${p.id.slice(0, 8)} · ${p.title} · ${p.width}×${p.height} · ${p.colors} 色 · 颗粒 ${p.total_parts} · 套装 ${Object.keys(p.sets).join('+') || '无'} · ${String(p.created_at).slice(0, 10)}`).join('\n'))
+        all.map((p) => `${p.id.slice(0, 8)} · ${p.title} · ${p.width}×${p.height} · ${p.colors} 色 · 颗粒 ${p.total_parts} · 套装 ${Object.keys(p.sets).join('+') || '无'} · ${String(p.created_at).slice(0, 10)}${p.has_image ? ' · 有预览图' : ''}`).join('\n'))
     }
 
     if (args.action === 'project') {
@@ -135,7 +135,7 @@ export const brickMosaicTool = {
         .slice()
         .sort((a, b) => (Number(b[3]) || 0) - (Number(a[3]) || 0))
         .map((p) => `type ${p[4]} · element ${p[5]} · rgb(${p[0]},${p[1]},${p[2]}) × ${p[3]}`)
-      return result(true, `「${r.title}」${r.width}×${r.height} · 套装 ${Object.entries(r.sets).map(([k, v]) => `${k}×${v}`).join('+') || '无'} · 共 ${total} 颗粒：`,
+      return result(true, `「${r.title}」${r.width}×${r.height} · 套装 ${Object.entries(r.sets).map(([k, v]) => `${k}×${v}`).join('+') || '无'} · 共 ${total} 颗粒${r.image ? '（含预览图）' : ''}：`,
         (lines.join('\n')).slice(0, MAX_TEXT))
     }
 
