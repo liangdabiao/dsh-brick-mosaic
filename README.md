@@ -3,6 +3,8 @@
 DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛克像素画**，生成 PDF/长图拼搭说明书。马赛克计算 100% 在面板浏览器端完成（图片不上传）；会话模型提供**创作指导**与 **AI 风格优化**；`brick_mosaic` 工具管理**作品档案与跨作品采购清单**。
 
 移植自 [custombrickmosaic.github.io](https://custombrickmosaic.github.io/)（Christoph Fritzsch 开源项目）的 **Liangdabiao 深度定制版**（原 100% 客户端 Web 应用 + 微信小程序）。
+<img width="2489" height="1389" alt="image" src="https://github.com/user-attachments/assets/d8af4dd2-a74c-479e-badd-5d0d7bf31c88" />
+
 
 ## 核心功能
 
