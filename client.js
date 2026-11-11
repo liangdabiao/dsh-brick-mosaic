@@ -2,7 +2,7 @@
 // 砖拼工坊 · 浏览器半边
 //   - 侧栏加「砖拼工坊」入口，主区域是插件页面（/brick-mosaic/，iframe）
 //   - 页面点「让 agent 帮我创作」：postMessage 草稿，这里开新对话并填进输入框
-//   - 页面是 Bootstrap 浅色产品 UI，不做明暗跟随
+//   - 明暗跟随 dsh 主题（theme/change → postMessage → lab/scheme.js）
 //
 // 注意：这里**不要**自己写 window.__ModuleLoader__.load(...)——scripts/build.mjs 的
 // banner 已包了一层注册，再包一次会 duplicate factory registration 让 web boot 失败。
@@ -37,6 +37,7 @@ function apply(ctx) {
     const ref = React.useRef(null)
     React.useEffect(() => {
       const self = ref.current
+      if (self) frames.add(self)
       function onMessage(e) {
         const frame = ref.current
         if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return
@@ -51,7 +52,7 @@ function apply(ctx) {
         }
       }
       addEventListener('message', onMessage)
-      return () => { removeEventListener('message', onMessage) }
+      return () => { removeEventListener('message', onMessage); frames.delete(self) }
     }, [])
     return h('iframe', {
       ref,
@@ -69,6 +70,6 @@ function apply(ctx) {
 }
 
 exports.isPlugin = true
-exports.inject = ['slots', 'uiWorkspace', 'theme']
+exports.inject = ['slots', 'uiWorkspace']
 exports.apply = apply
 

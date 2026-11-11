@@ -2,7 +2,7 @@
 
 DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛克像素画**，生成 PDF/长图拼搭说明书。马赛克计算 100% 在面板浏览器端完成（图片不上传）；会话模型提供**创作指导**与 **AI 风格优化**；`brick_mosaic` 工具管理**作品档案与跨作品采购清单**。
 
-移植自 [custombrickmosaic.github.io](https://github.com/)（Christoph Fritzsch 开源项目）的 **Liangdabiao 深度定制版**（原 100% 客户端 Web 应用 + 微信小程序）。
+移植自 [custombrickmosaic.github.io](https://custombrickmosaic.github.io/)（Christoph Fritzsch 开源项目）的 **Liangdabiao 深度定制版**（原 100% 客户端 Web 应用 + 微信小程序）。
 
 ## 核心功能
 
@@ -12,6 +12,7 @@ DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛
 - ✦ **agent 创作指导**（mosaic-artist 技能）：照片选择/尺寸规划/套装组合策略/调色思路；AI 风格优化也可由 agent 用 `dreamina-canvas` / `apiz` CLI 完成
 - 💾 **作品档案**（brick_mosaic 工具）：作品（尺寸/套装组合/颗粒清单）入库；**跨作品零件聚合**——「我这些作品一共需要多少 element XXXX 颗粒」→ 按乐高官方零件号的采购清单
 - 🔒 **隐私**：图片全程本地处理，不上传任何服务器；档案只存参数与颗粒清单，不存图片
+- 🎨 **dsh 家族皮肤**：面板换成暖纸底 + 砖橙强调色的统一视觉（`lab/bm-theme.css`），**明暗主题跟随宿主**（`lab/scheme.js` + `theme/change` → postMessage），不再是一块突兀的 Bootstrap 白板
 
 ## 使用流程
 
@@ -31,7 +32,7 @@ dsh plugin add <本仓库本地路径>
 
 ```bash
 npm install
-npm test                 # 3 项单测：档案库 + 原项目 11 套装色板完整性校验
+npm test                 # 7 项单测：档案库 + 原项目 11 套装色板完整性校验
 npm run build            # client.js → dist/client.js
 node scripts/smoke.mjs   # 16 项冒烟：静态页/vendor/API 全链路/工具直调
 DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
@@ -51,6 +52,8 @@ DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
 │   ├── index.html       原 UI 本地化迁移（品牌条 + 存档按钮 + agent 按钮）
 │   ├── brickMosaic.js   原引擎 2138 行（行为不变）
 │   ├── app-shell.js     外壳：存档钩子 + agent 协作（postMessage 桥）
+│   ├── bm-theme.css     dsh 家族皮肤（明暗双主题 token + Bootstrap 覆盖）
+│   ├── scheme.js        明暗跟随：宿主 data-ds-dark-theme / postMessage → html[data-scheme]
 │   ├── vendor/          jspdf 1.5.3 + bootstrap 5.0.0-beta2（本地化）
 │   └── cropper.min.js/css
 └── client.js → dist/    侧栏入口 + iframe 桥
