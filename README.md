@@ -8,7 +8,8 @@ DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛
 
 - 🧱 **马赛克引擎**（面板内，原样保留）：11 个乐高 Art 套装色板（猫王/蝙蝠侠/钢铁侠/西斯/霍格沃茨/米奇/披头士/梦露/自定义肖像/世界地图/Art 项目）、Lab 色差匹配、**颗粒数量约束的艺术效果**（套装数量支持 0.9 小数微调）、HSV/对比度/暗部亮部调整、自定义裁剪（Cropper.js）、忽略黑色区域
 - 📄 **拼搭说明书**：16 颗粒分区指引的 PDF（jsPDF）与长图（PNG）下载
-- ✦ **agent 创作指导**（mosaic-artist 技能）：照片选择/尺寸规划/套装组合策略/调色思路；**AI 风格优化**——需要时用 `dreamina-canvas` 或 `apiz` CLI 把图片转多边形艺术风（插件内零 API key）
+- ✦ **AI 风格优化**（面板「🤖 AI 风格优化」按钮）：一键把图片转多边形艺术风格——默认走 **agnes-ai 图生图**（`agnes-image-2.0-flash`，key 内置、体验价 $0，支持 Config 覆盖与代理），返回 data URI 不经 CORS 直接进引擎重算马赛克
+- ✦ **agent 创作指导**（mosaic-artist 技能）：照片选择/尺寸规划/套装组合策略/调色思路；AI 风格优化也可由 agent 用 `dreamina-canvas` / `apiz` CLI 完成
 - 💾 **作品档案**（brick_mosaic 工具）：作品（尺寸/套装组合/颗粒清单）入库；**跨作品零件聚合**——「我这些作品一共需要多少 element XXXX 颗粒」→ 按乐高官方零件号的采购清单
 - 🔒 **隐私**：图片全程本地处理，不上传任何服务器；档案只存参数与颗粒清单，不存图片
 
@@ -43,6 +44,7 @@ DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
 ├── src/systemPrompt.js  工作流硬规则（计算在面板/档案用工具/AI 优化给路径）
 ├── lib/store.js         作品档案（projects/*.json 原子写）+ 跨作品零件聚合
 ├── lib/api.js           /brick-mosaic 前缀路由（档案 CRUD + lab 静态资源）
+├── lib/ai.js            agnes-ai 图生图客户端（key 内置可覆盖、JPEG 尺寸探测选档、代理 CONNECT 隧道）
 ├── lib/skills.js        技能提供方
 ├── skills/mosaic-artist/ 创作方法论 + AI 风格优化 CLI 对接
 ├── lab/
@@ -57,7 +59,7 @@ DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
 ## 边界与说明
 
 - 只支持浏览器可解码的图片格式（jpg/png/webp/gif）；扫描件质量的低对比照片效果差，先让 agent 指导调色或风格化
-- AI 风格优化依赖本机已安装并登录的 `dreamina-canvas` / `apiz` CLI；都没有时技能会给出手动替代路径
+- 内置 agnes-ai key 为免费体验档（$0），高并发时段可能返回「队列已满」——重试即可，或在 Config 换自己的 key；也可走 agent 的 dreamina/apiz CLI 路径
 - 大图（4000px+）计算耗时随尺寸增长，面板有进度条
 
 ## 致谢

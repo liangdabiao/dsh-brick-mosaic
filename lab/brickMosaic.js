@@ -165,7 +165,7 @@ document.getElementById("buttonAiOptimize").addEventListener("click", async () =
 
 		const prompt = '风格参考：{ "background": "纯黑色", "lighting": "戏剧性的低光", "style": "多边形艺术风格，锐利的线条和刻面，现代图形感，融合写实与抽象", "composition": "动态构图，焦点在 表情和姿势" }';
 
-		const response = await fetch('/api/ai-optimize', {
+		const response = await fetch('/brick-mosaic/api/ai-optimize', { // dsh 适配：面板挂在 /brick-mosaic 前缀下（唯一改动）
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ imageBase64, prompt })

@@ -21,6 +21,9 @@ export const inject = ['tools', 'skills', 'systemPrompt', 'webServer', 'connecti
 
 export const Config = Schema.object({
   injectRules: Schema.boolean().default(true).description('注入砖拼工坊工作流到系统提示'),
+  aiApiKey: Schema.string().default('').description('AI 风格优化的 API key（留空用内置 agnes-ai key）'),
+  aiProxyUrl: Schema.string().default('').description('AI 优化请求的代理（留空读 HTTPS_PROXY 环境变量）'),
+  aiTimeout: Schema.number().default(240000).description('AI 优化请求超时（毫秒）'),
 })
 
 function check(args, spec) {
@@ -165,5 +168,5 @@ export function apply(ctx, config) {
   if (config.injectRules !== false) {
     ctx.effect(() => ctx.systemPrompt.section(systemSection()), `${name}: workflow`)
   }
-  ctx.effect(() => registerApi(ctx), `${name}: routes`)
+  ctx.effect(() => registerApi(ctx, { aiConfig: config }), `${name}: routes`)
 }
