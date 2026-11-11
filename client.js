@@ -28,11 +28,19 @@ function apply(ctx) {
   let scheme = null
   const frames = new Set()
   const post = (frame) => { try { if (scheme && frame.contentWindow) frame.contentWindow.postMessage({ type: 'brick-mosaic:scheme', scheme }, location.origin) } catch {} }
-  ctx.inject(['theme'], (c) => {
-    const push = (snap) => { scheme = snap.active.colorScheme; frames.forEach(post) }
-    try { push(c.theme.getTheme()) } catch {}
-    c.on('theme/change', push)
-  })
+  // 注意：这段放在 slot 注册之后（见函数末尾）并整体 try/catch——
+  // 主题服务是可选依赖，万一 theme/change API 形态变化，也不能把侧栏入口一起带走。
+  const subscribeTheme = () => {
+    try {
+      ctx.inject(['theme'], (c) => {
+        const push = (snap) => { scheme = snap.active.colorScheme; frames.forEach(post) }
+        try { push(c.theme.getTheme()) } catch {}
+        c.on('theme/change', push)
+      })
+    } catch (e) {
+      console.warn('[brick-mosaic] 主题订阅失败，面板仍可用（固定浅色）', e)
+    }
+  }
   function StudioPanel() {
     const ref = React.useRef(null)
     React.useEffect(() => {
@@ -67,6 +75,7 @@ function apply(ctx) {
   ctx.slots.inject('sidebar.panellist', () =>
     ctx.slots.register({ name: 'sidebar.panellist', id: PANEL, order: 15, label: () => '砖拼工坊' }, PanelIcon))
   ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: PANEL }, StudioPanel))
+  subscribeTheme()
 }
 
 exports.isPlugin = true

@@ -16,6 +16,7 @@ const guard = `window.__dshLoadedIds = window.__dshLoadedIds || new Set();` +
 const banner =
   guard +
   ` window.__ModuleLoader__.load({ id: ${JSON.stringify(PLUGIN_ID)}, factory: (require) => {` +
+  ` /* ${PLUGIN_ID} v${pkg.version} */` +
   ` const module = { exports: {} }; const exports = module.exports;`
 const footer = ' return module.exports; } }); }'
 
