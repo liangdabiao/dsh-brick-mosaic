@@ -71,3 +71,29 @@ a { color: var(--bm-accent); }
 .bg-light { background: var(--bm-paper-2) !important; color: var(--bm-ink) !important; }
 footer { color: var(--bm-helper) !important; }
 footer a { color: var(--bm-helper) !important; }
+
+/* ---------- 表格（作品档案 / 颗粒清单 / 采购清单）---------- */
+.table { color: var(--bm-text) !important; border-color: var(--bm-line-subtle) !important; }
+.table > :not(caption) > * > * { border-color: var(--bm-line-subtle) !important; }
+.table thead th { color: var(--bm-ink) !important; font-weight: 600; font-size: 12px; border-bottom-color: var(--bm-line) !important; }
+.table tfoot td { color: var(--bm-ink) !important; border-top-color: var(--bm-line) !important; }
+.table code { color: var(--bm-text); background: var(--bm-paper-2); padding: 1px 4px; }
+
+/* ---------- 作品档案模态 ---------- */
+.bm-badge { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--bm-accent); color: #fff; font-size: 11px; line-height: 16px; text-align: center; vertical-align: 1px; }
+.bm-arch-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; padding: 2px 0 10px; font-size: 13px; }
+.bm-arch-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.bm-arch-table { font-size: 13px; margin-bottom: 8px; }
+.bm-arch-table td, .bm-arch-table th { padding: 6px 8px; }
+.bm-arch-title { font-weight: 600; color: var(--bm-ink); }
+.bm-arch-id { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; color: var(--bm-helper); }
+.bm-arch-sets, .bm-arch-time { color: var(--bm-sub); font-size: 12px; }
+.bm-arch-meta { font-size: 12px; color: var(--bm-sub); }
+.bm-arch-hint { font-size: 12px; color: var(--bm-helper); margin-top: 6px; }
+.bm-arch-hint code { color: var(--bm-sub); }
+.bm-arch-empty { text-align: center; padding: 32px 12px; border: 1px dashed var(--bm-line); background: var(--bm-paper-2); }
+.bm-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 2px;
+  border: 1px solid var(--bm-line); vertical-align: -2px; }
+

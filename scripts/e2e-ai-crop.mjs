@@ -12,8 +12,8 @@ import { writeFileSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-const PORT = process.env.PORT || '5250'
-const BASE = `http://127.0.0.1:${PORT}/brick-mosaic/`
+const ROOT = (process.env.BASE || `http://127.0.0.1:${process.env.PORT || '5250'}`).replace(/\/$/, '')
+const BASE = ROOT + '/brick-mosaic/'
 
 function loadPlaywright() {
   const candidates = [

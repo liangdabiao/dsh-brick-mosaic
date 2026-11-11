@@ -10,7 +10,7 @@ DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛
 - 📄 **拼搭说明书**：16 颗粒分区指引的 PDF（jsPDF）与长图（PNG）下载
 - ✦ **AI 风格优化**（面板「🤖 AI 风格优化」按钮）：一键把图片转多边形艺术风格——默认走 **agnes-ai 图生图**（`agnes-image-2.0-flash`，key 内置、体验价 $0，支持 Config 覆盖与代理），返回 data URI 不经 CORS 直接进引擎重算马赛克
 - ✦ **agent 创作指导**（mosaic-artist 技能）：照片选择/尺寸规划/套装组合策略/调色思路；AI 风格优化也可由 agent 用 `dreamina-canvas` / `apiz` CLI 完成
-- 💾 **作品档案**（brick_mosaic 工具）：作品（尺寸/套装组合/颗粒清单）入库；**跨作品零件聚合**——「我这些作品一共需要多少 element XXXX 颗粒」→ 按乐高官方零件号的采购清单
+- 💾 **作品档案**：面板「💾 存到作品档案」入库（尺寸/套装组合/颗粒清单，**不存图片**）；「📁 作品档案」里看列表、展开颗粒清单（色块/RGB/element ID/数量）、勾选多个作品**聚合采购清单**（CSV 导出）、删除；同一份数据 agent 用 `brick_mosaic` 工具也能查
 - 🔒 **隐私**：图片全程本地处理，不上传任何服务器；档案只存参数与颗粒清单，不存图片
 - 🎨 **dsh 家族皮肤**：面板换成暖纸底 + 砖橙强调色的统一视觉（`lab/bm-theme.css`），**明暗主题跟随宿主**（`lab/scheme.js` + `theme/change` → postMessage），不再是一块突兀的 Bootstrap 白板
 
@@ -18,7 +18,7 @@ DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛
 
 1. 侧栏「砖拼工坊」→ 面板里上传图片、裁剪调色、选 Art 套装与尺寸 → 「生成马赛克」
 2. 拿不准就点顶部「✦ 让 agent 帮我创作」——开新对话获得照片/尺寸/套装/调色建议；需要风格化时 agent 会用 CLI 生成多边形风格图给你
-3. 算完点「💾 存到作品档案」入库；对话里问「我这些作品一共要买多少颗粒」→ agent 跑 `brick_mosaic(action="parts_list")` 给采购清单
+3. 算完点「💾 存到作品档案」入库；点「📁 作品档案」可看颗粒清单、勾选多个作品聚合采购清单并导出 CSV；对话里问「我这些作品一共要买多少颗粒」→ agent 跑 `brick_mosaic(action="parts_list")` 给同样的清单
 
 ## 安装
 
@@ -35,8 +35,8 @@ npm install
 npm test                 # 7 项单测：档案库 + 原项目 11 套装色板完整性校验
 npm run build            # client.js → dist/client.js
 node scripts/smoke.mjs   # 16 项冒烟：静态页/vendor/API 全链路/工具直调
-npm run test:e2e         # 浏览器端到端回归（需先 node scripts/devserver.mjs 5250 + playwright）
-DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
+npm run test:e2e         # 浏览器端到端（save 全链路 / 档案页 / AI+裁剪回归）
+DSH_HOME=<临时目录> node scripts/devserver.mjs 5251   # 面板独立预览（e2e 用它，别污染真实档案）
 ```
 
 ## 架构
@@ -52,7 +52,8 @@ DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
 ├── lab/
 │   ├── index.html       原 UI 本地化迁移（品牌条 + 存档按钮 + agent 按钮）
 │   ├── brickMosaic.js   原引擎 2138 行（行为不变）
-│   ├── app-shell.js     外壳：存档钩子 + agent 协作（postMessage 桥）
+│   ├── app-shell.js     外壳：存档钩子 + agent 协作（postMessage 桥）+ 套装数量输入重算
+│   ├── archive.js       作品档案页：列表 / 颗粒清单详情 / 跨作品采购清单（CSV）/ 删除
 │   ├── bm-theme.css     dsh 家族皮肤（明暗双主题 token + Bootstrap 覆盖）
 │   ├── scheme.js        明暗跟随：宿主 data-ds-dark-theme / postMessage → html[data-scheme]
 │   ├── vendor/          jspdf 1.5.3 + bootstrap 5.0.0-beta2（本地化）

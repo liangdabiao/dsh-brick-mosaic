@@ -95,8 +95,13 @@
 
   const saveBtn = document.getElementById('buttonSaveProject')
   if (saveBtn) {
-    // 引擎在计算完成后解禁下载按钮——跟着它的状态走
-    setInterval(() => { saveBtn.disabled = document.getElementById('buttonDownloadPDF').disabled }, 800)
+    // 引擎在计算完成后解禁下载按钮——跟着它的状态走（用观察器代替轮询，立刻响应）
+    const pdfBtn = document.getElementById('buttonDownloadPDF')
+    const sync = () => { saveBtn.disabled = pdfBtn.disabled }
+    if (pdfBtn) {
+      new MutationObserver(sync).observe(pdfBtn, { attributes: true, attributeFilter: ['disabled'] })
+      sync()
+    }
     saveBtn.onclick = async () => {
       const project = collectProject()
       if (!project) { toast('还没有可存档的马赛克——先「生成马赛克」', true); return }
@@ -107,10 +112,27 @@
         const body = await res.json().catch(() => ({}))
         if (!res.ok || !body.ok) throw new Error(body.error || `HTTP ${res.status}`)
         const total = (project.parts || []).reduce((n, p) => n + (Number(p[3]) || 0), 0)
-        toast(`已存档「${project.title}」（${project.width}×${project.height}，${project.parts.length} 色，实际用颗粒 ${total}）——agent 可用 brick_mosaic 查询`)
+        toast(`已存档「${project.title}」（${project.width}×${project.height}，${project.parts.length} 色，实际用颗粒 ${total}）——点「📁 作品档案」可查看/管理`)
+        // 让档案按钮上的数量立刻更新（archive.js 暴露的刷新钩子）
+        if (typeof window.bmArchiveRefresh === 'function') window.bmArchiveRefresh()
       } catch (e) {
         toast(`存档失败：${e.message}`, true)
       }
+    }
+  }
+
+  // ── 套装数量直接输入时不刷新 ────────────────────────────────────────────
+  // 引擎只给套装输入框绑了 click（点 +/- 或点输入框才重算），
+  // 所以「手填数字 → 生成马赛克」按钮一直是灰的。这里补 input/change 监听：
+  // 借引擎自己的 widthInputValue change 处理链路重算可用颗粒数，不改引擎代码。
+  const widthInput = document.getElementById('widthInputValue')
+  if (widthInput) {
+    for (const id of SET_INPUTS) {
+      const input = document.getElementById(id)
+      if (!input) continue
+      const kick = () => widthInput.dispatchEvent(new Event('change'))
+      input.addEventListener('input', kick)
+      input.addEventListener('change', kick)
     }
   }
 })()
