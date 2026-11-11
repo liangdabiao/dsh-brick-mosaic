@@ -1,0 +1,73 @@
+/* 砖拼工坊 · dsh 家族风皮肤：盖在 Bootstrap 之上，只动观感、不动引擎 DOM。
+   明暗双主题（scheme.js 写 html[data-scheme]），强调色 = 批注橙。 */
+:root {
+  --bm-paper: #fafaf8; --bm-paper-2: #f0f0ee; --bm-grey: #f0f0ee;
+  --bm-ink: #0a0a0a; --bm-text: #262626; --bm-sub: #737373; --bm-helper: #8c8c89;
+  --bm-line: #d4d4d2; --bm-line-subtle: #e7e7e3;
+  --bm-accent: #C2410C; --bm-accent-soft: #faf1ef;
+  color-scheme: light;
+}
+:root[data-scheme="dark"] {
+  --bm-paper: #1b1b1a; --bm-paper-2: #232322; --bm-grey: #111110;
+  --bm-ink: #f2f2f0; --bm-text: #dcdcda; --bm-sub: #b4b4b1; --bm-helper: #8c8c89;
+  --bm-line: #3a3a38; --bm-line-subtle: #2b2b2a;
+  --bm-accent: #E05A4E; --bm-accent-soft: #2a211f;
+  color-scheme: dark;
+}
+
+/* ---------- 页面基底 ---------- */
+body { background: var(--bm-paper) !important; color: var(--bm-text) !important; }
+h1 { font-size: 1.35rem !important; font-weight: 700 !important; letter-spacing: -.01em; color: var(--bm-ink) !important; margin: 0 !important; padding: var(--bs-body-font-size, 0) 0; }
+.navbar-text { color: var(--bm-sub) !important; font-size: 13px; }
+.nav-link { color: var(--bm-sub) !important; font-size: 13px; }
+.nav-link:hover { color: var(--bm-accent) !important; }
+.form-label, label.form-label strong { color: var(--bm-ink) !important; }
+.text-muted { color: var(--bm-helper) !important; }
+
+/* ---------- 品牌条（替换原内联黑条）---------- */
+.bm-brand { display: flex; align-items: center; gap: 12px; padding: 10px 16px; flex-wrap: wrap;
+  background: var(--bm-paper-2); border-bottom: 1px solid var(--bm-line-subtle); color: var(--bm-ink); }
+.bm-brand-name { font-weight: 700; font-size: 14px; color: var(--bm-ink); }
+.bm-brand-sub { font-weight: 400; color: var(--bm-helper); font-size: 11px; }
+.bm-brand-desc { font-size: 12px; color: var(--bm-sub); }
+.bm-agent-btn { background: var(--bm-accent); color: #fff; border: 0; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.bm-agent-btn:hover { filter: brightness(1.08); }
+
+/* ---------- 表单与按钮 ---------- */
+.form-control, .form-select { background: var(--bm-grey) !important; border-color: var(--bm-line) !important; color: var(--bm-text) !important; }
+.form-control:focus, .form-select:focus { background: var(--bm-grey) !important; color: var(--bm-text) !important; border-color: var(--bm-accent) !important; box-shadow: none !important; }
+.form-control::placeholder { color: var(--bm-helper) !important; }
+.input-group-text { background: var(--bm-paper-2) !important; border-color: var(--bm-line) !important; color: var(--bm-sub) !important; }
+.form-check-input:checked { background-color: var(--bm-accent) !important; border-color: var(--bm-accent) !important; }
+.form-check-label { color: var(--bm-text) !important; }
+
+.btn-primary { background: var(--bm-accent) !important; border-color: var(--bm-accent) !important; color: #fff !important; }
+.btn-primary:hover, .btn-primary:focus { background: var(--bm-accent) !important; border-color: var(--bm-accent) !important; filter: brightness(1.08); }
+.btn-success { background: var(--bm-paper-2) !important; border: 1px solid var(--bm-accent) !important; color: var(--bm-accent) !important; }
+.btn-success:hover, .btn-success:focus { background: var(--bm-accent-soft) !important; color: var(--bm-accent) !important; border-color: var(--bm-accent) !important; box-shadow: none !important; }
+.btn-secondary, .btn-outline-info { background: var(--bm-paper-2) !important; border-color: var(--bm-line) !important; color: var(--bm-text) !important; }
+.btn-secondary:hover, .btn-outline-info:hover { border-color: var(--bm-accent) !important; color: var(--bm-accent) !important; background: var(--bm-paper-2) !important; }
+.btn-secondary.active { background: var(--bm-accent) !important; border-color: var(--bm-accent) !important; color: #fff !important; }
+.btn-group .btn-secondary { border-radius: 0; }
+.btn-outline-secondary { color: var(--bm-sub) !important; border-color: var(--bm-line) !important; }
+.btn-outline-secondary:hover { background: var(--bm-paper-2) !important; color: var(--bm-text) !important; }
+.btn-close { filter: none; }
+:root[data-scheme="dark"] .btn-close { filter: invert(1) grayscale(1); }
+
+/* ---------- 预览画布 / 缩略图 ---------- */
+canvas { background: var(--bm-grey) !important; border-color: var(--bm-line) !important; }
+#mosaicPreview { border: 1px solid var(--bm-line) !important; }
+.img-thumbnail { background: var(--bm-paper-2) !important; border-color: var(--bm-line) !important; }
+
+/* ---------- 模态框 ---------- */
+.modal-content { background: var(--bm-paper) !important; color: var(--bm-text) !important; border: 1px solid var(--bm-line) !important; }
+.modal-header, .modal-footer { border-color: var(--bm-line-subtle) !important; }
+.modal-header.bg-light { background: var(--bm-paper-2) !important; color: var(--bm-ink) !important; }
+.modal-title { color: var(--bm-ink) !important; }
+h5 { color: var(--bm-ink) !important; }
+
+/* ---------- 其他 ---------- */
+a { color: var(--bm-accent); }
+.bg-light { background: var(--bm-paper-2) !important; color: var(--bm-ink) !important; }
+footer { color: var(--bm-helper) !important; }
+footer a { color: var(--bm-helper) !important; }

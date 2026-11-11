@@ -24,6 +24,15 @@ function PanelIcon(props) {
 }
 
 function apply(ctx) {
+  // 明暗跟随：宿主主题变化推给面板 iframe（scheme.js 接收）
+  let scheme = null
+  const frames = new Set()
+  const post = (frame) => { try { if (scheme && frame.contentWindow) frame.contentWindow.postMessage({ type: 'brick-mosaic:scheme', scheme }, location.origin) } catch {} }
+  ctx.inject(['theme'], (c) => {
+    const push = (snap) => { scheme = snap.active.colorScheme; frames.forEach(post) }
+    try { push(c.theme.getTheme()) } catch {}
+    c.on('theme/change', push)
+  })
   function StudioPanel() {
     const ref = React.useRef(null)
     React.useEffect(() => {
@@ -50,6 +59,7 @@ function apply(ctx) {
       title: '砖拼工坊',
       allow: 'fullscreen',
       style: { width: '100%', height: '100%', border: 0, display: 'block' },
+      onLoad: (e) => post(e.currentTarget),
     })
   }
 
@@ -59,5 +69,6 @@ function apply(ctx) {
 }
 
 exports.isPlugin = true
-exports.inject = ['slots', 'uiWorkspace']
+exports.inject = ['slots', 'uiWorkspace', 'theme']
 exports.apply = apply
+
