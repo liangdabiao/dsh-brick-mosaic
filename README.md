@@ -35,6 +35,7 @@ npm install
 npm test                 # 7 项单测：档案库 + 原项目 11 套装色板完整性校验
 npm run build            # client.js → dist/client.js
 node scripts/smoke.mjs   # 16 项冒烟：静态页/vendor/API 全链路/工具直调
+npm run test:e2e         # 浏览器端到端回归（需先 node scripts/devserver.mjs 5250 + playwright）
 DSH_HOME=<目录> node scripts/devserver.mjs 5175   # 面板独立预览
 ```
 

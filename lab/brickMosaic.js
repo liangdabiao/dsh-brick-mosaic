@@ -185,32 +185,49 @@ document.getElementById("buttonAiOptimize").addEventListener("click", async () =
 			throw new Error('AI 优化未返回图片数据');
 		}
 
+		// 先确认 AI 返回的图能解码（解码失败就不动当前画面）。onload 必须先挂再赋 src，
+		// 否则 data URI 命中缓存时 load 事件可能已经过去，整个「优化完成」流程不执行。
 		const aiImg = new Image();
 		aiImg.crossOrigin = 'anonymous';
-		aiImg.onload = () => {
-			previewImage.src = data.imageUrl;
-			previewImage.onload = () => {
-				drawPreviewImage(true);
-				if (!document.getElementById("buttonCalculate").disabled) {
-					generateValidColoringAndDraw();
-				}
-				text.textContent = "重新AI优化";
-				status.textContent = "优化完成";
-				status.classList.remove('text-danger');
-				status.classList.add('text-success');
-				btn.disabled = false;
-				icon.innerHTML = "🤖";
-			};
-		};
-		aiImg.onerror = () => {
-			status.textContent = "AI 返回的图片加载失败";
-			status.classList.remove('text-success');
-			status.classList.add('text-danger');
-			text.textContent = "AI 风格优化";
-			icon.innerHTML = "🤖";
-			btn.disabled = false;
-		};
-		aiImg.src = data.imageUrl;
+		await new Promise((resolve, reject) => {
+			aiImg.onload = resolve;
+			aiImg.onerror = () => reject(new Error('AI 返回的图片加载失败'));
+			aiImg.src = data.imageUrl;
+		});
+
+		previewImage.src = data.imageUrl;
+		try {
+			await previewImage.decode();
+		} catch (e) {
+			throw new Error('AI 返回的图片无法解码');
+		}
+
+		// 关键修复：AI 结果替换了源图，之前缓存的裁剪结果（croppedCanvas）已经过期。
+		// 不复位的话 drawPreviewImage 会继续用旧裁剪图 —— 画面还是旧图，
+		// 得手动切一次裁剪模式（重开 cropper 读新 previewImg.src）才刷新。
+		// 处理方式与「重新上传图片」一致：回到裁切中心模式。
+		// （AI 的输入本来就是当前裁剪后的内容，所以整图替换即可，不需要再裁一次。）
+		customCrop.enabled = false;
+		customCrop.croppedCanvas = null;
+		if (customCrop.cropper) {
+			customCrop.cropper.destroy();
+			customCrop.cropper = null;
+		}
+		document.getElementById("cropCenterSquareButton").classList.add('active');
+		document.getElementById("scaleToSquareButton").classList.remove('active');
+		document.getElementById("customCropButton").classList.remove('active');
+
+		await drawPreviewImage(true);
+		if (!document.getElementById("buttonCalculate").disabled) {
+			generateValidColoringAndDraw();
+		}
+
+		text.textContent = "重新AI优化";
+		status.textContent = "优化完成";
+		status.classList.remove('text-danger');
+		status.classList.add('text-success');
+		btn.disabled = false;
+		icon.innerHTML = "🤖";
 
 	} catch (error) {
 		console.error('AI optimization error:', error);
