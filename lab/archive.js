@@ -98,6 +98,7 @@
           <thead>
             <tr>
               <th style="width:28px"><input type="checkbox" class="form-check-input" id="bmArchAll" ${allSel ? 'checked' : ''}></th>
+              <th style="width:56px">预览</th>
               <th>作品</th><th style="width:78px">尺寸</th><th style="width:60px">色数</th>
               <th style="width:78px">颗粒</th><th>套装</th><th style="width:120px">存档时间</th><th style="width:110px"></th>
             </tr>
@@ -106,6 +107,7 @@
             ${list.map((p) => `
               <tr>
                 <td><input type="checkbox" class="form-check-input bm-arch-pick" data-id="${esc(p.id)}" ${state.selected.has(p.id) ? 'checked' : ''}></td>
+                <td>${p.has_image ? `<img class="bm-arch-thumb" src="${API}/project/image?id=${encodeURIComponent(p.id)}" alt="${esc(p.title)} 预览" loading="lazy">` : '<span class="bm-arch-thumb-empty" title="这个作品存档较早，没有预览图">无图</span>'}</td>
                 <td><div class="bm-arch-title">${esc(p.title)}</div><div class="bm-arch-id">${esc(p.id.slice(0, 8))}</div></td>
                 <td>${p.width}×${p.height}</td>
                 <td>${p.colors}</td>
@@ -174,9 +176,11 @@
             <span class="text-muted">· ${project.width}×${project.height} · ${parts.length} 色 · ${total} 颗粒</span>
           </div>
           <div class="bm-arch-actions">
+            ${project.has_image ? `<a class="btn btn-sm btn-secondary" id="bmArchDownloadPng" download="${esc(project.title)}.png" href="${API}/project/image?id=${encodeURIComponent(project.id)}">⬇ 下载 PNG</a>` : ''}
             <button type="button" class="btn btn-sm btn-primary" id="bmArchThisParts">📋 这个作品的采购清单</button>
           </div>
         </div>
+        ${project.has_image ? `<img class="bm-arch-preview" src="${API}/project/image?id=${encodeURIComponent(project.id)}" alt="${esc(project.title)} 马赛克预览">` : '<p class="bm-arch-hint mb-2">这个作品存档较早，没有预览图（新存档会连马赛克 PNG 一起存）。</p>'}
         <p class="bm-arch-meta mb-2">
           套装：${setsText(project.sets)}　·　存档：${fmtTime(project.created_at)}${project.filename ? `　·　源文件：${esc(project.filename)}` : ''}　·　id：<code>${esc(project.id.slice(0, 8))}</code>
         </p>

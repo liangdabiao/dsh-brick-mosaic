@@ -29,10 +29,12 @@ async function post(path, body) {
   return data
 }
 
-// ── 造数据：两个作品，element 300121 有重叠以便验证聚合 ──────────────────
+// ── 造数据：两个作品，element 300121 有重叠以便验证聚合；A 带马赛克 PNG ∎ ──────
+const PNG_1x1 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
 const A = await post('/project', {
   title: '测试猫', width: 48, height: 48, sets: { Elvis: 1 }, filename: 'cat.png',
   parts: [[255, 0, 0, 100, 1, '300121'], [0, 0, 255, 250, 1, '300123'], [255, 255, 255, 10, 1, '300101']],
+  image: PNG_1x1, imageWidth: 1440, imageHeight: 1440,
 })
 const B = await post('/project', {
   title: '测试蝙蝠', width: 32, height: 48, sets: { Batman: 2 }, filename: 'bat.png',
@@ -64,7 +66,17 @@ try {
   check('列表 2 行', rows.length === 2, `实际 ${rows.length}`)
   check('统计：2 个作品 · 440 颗粒', toolbar.includes('2 个作品') && toolbar.includes('440'))
 
-  // 3) 详情：测试猫 = 3 色 360 颗粒
+  // 2b) 缩略图：A 有图、B 无图占位
+  const thumbs = await page.$$('#archiveBody img.bm-arch-thumb')
+  const noThumb = await page.$$('#archiveBody .bm-arch-thumb-empty')
+  check('列表缩略图 1 张 + 无图占位 1 个', thumbs.length === 1 && noThumb.length === 1, `thumb=${thumbs.length} empty=${noThumb.length}`)
+  const thumbLoaded = await page.evaluate(() => {
+    const img = document.querySelector('#archiveBody img.bm-arch-thumb')
+    return !!(img && img.complete && img.naturalWidth > 0)
+  })
+  check('缩略图真的加载出来了', thumbLoaded)
+
+  // 3) 详情：测试猫 = 3 色 360 颗粒 + 大图/下载 PNG
   await page.click(`#archiveBody tr:has(.bm-arch-id:text-is("${A.id.slice(0, 8)}")) .bm-arch-open`)
   await page.waitForFunction(() => document.querySelectorAll('#archiveBody .bm-arch-table tbody tr').length === 3, { timeout: 5000 })
   const detailText = await page.textContent('#archiveBody')
@@ -72,6 +84,13 @@ try {
   check('详情颗粒行 3 行', detailRows.length === 3, `实际 ${detailRows.length}`)
   check('详情标题/合计正确', detailText.includes('测试猫') && detailText.includes('360') && detailText.includes('猫王 31204 ×1'))
   check('详情含 element ID', detailText.includes('300121') && detailText.includes('300123'))
+  const previewOk = await page.evaluate(() => {
+    const img = document.querySelector('#archiveBody img.bm-arch-preview')
+    return !!(img && img.complete && img.naturalWidth > 0)
+  })
+  check('详情显示马赛克预览图', previewOk)
+  const pngHref = await page.getAttribute('#bmArchDownloadPng', 'href')
+  check('详情有「下载 PNG」', !!pngHref && pngHref.includes('/api/project/image'))
 
   // 4) 返回 → 全选 → 采购清单聚合
   await page.click('#bmArchBack')

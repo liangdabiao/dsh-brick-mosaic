@@ -89,6 +89,24 @@ const callApi = (path, opts) => new Promise((resolve) => {
   check('API 采购聚合', parts.total === 350)
   const rm = JSON.parse((await callApi('/api/project/remove', { method: 'POST', body: { id: proj.id } })).body)
   check('API 删除', rm.ok === true)
+
+  // 存档带马赛克 PNG：写文件 → 清单标记 → 读图 → 删除清理
+  const png1x1 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+  const projImg = JSON.parse((await callApi('/api/project', {
+    method: 'POST',
+    body: { title: 'API带图作品', width: 32, height: 32, parts: PARTS, image: png1x1, imageWidth: 960, imageHeight: 960 },
+  })).body)
+  check('API 存档带 PNG', projImg.ok === true && projImg.has_image === true, `id=${projImg.id?.slice(0, 8)}`)
+  const listImg = JSON.parse((await callApi('/api/projects')).body)
+  check('清单标记 has_image', listImg.projects.find((p) => p.id === projImg.id)?.has_image === true)
+  const img = await callApi(`/api/project/image?id=${projImg.id}`)
+  check('缩略图可读（PNG）', img.statusCode === 200 && img.headers['content-type'] === 'image/png' && img.body.includes('PNG'))
+  const headImg = await callApi(`/api/project/image?id=${projImg.id}`, { method: 'HEAD' })
+  check('缩略图 HEAD 无正文', headImg.statusCode === 200 && headImg.body === '')
+  await callApi('/api/project/remove', { method: 'POST', body: { id: projImg.id } })
+  const gone = await callApi(`/api/project/image?id=${projImg.id}`)
+  check('删除后缩略图也没了', gone.statusCode === 404)
+
   const trav = await callApi(encodeURI('/brick-mosaic/../package.json').replace(/\.\./g, '%2e%2e'))
   check('路径穿越被拒', trav.statusCode === 404)
 }

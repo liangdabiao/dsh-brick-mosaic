@@ -1,8 +1,8 @@
 // ============================================================================
 // 砖拼工坊 · 浏览器半边
 //   - 侧栏加「砖拼工坊」入口，主区域是插件页面（/brick-mosaic/，iframe）
-//   - 页面点「让 agent 帮我创作」：postMessage 草稿，这里开新对话并填进输入框
 //   - 明暗跟随 dsh 主题（theme/change → postMessage → lab/scheme.js）
+//   - 面板内自带「📁 作品档案」，不再需要开新对话的桥
 //
 // 注意：这里**不要**自己写 window.__ModuleLoader__.load(...)——scripts/build.mjs 的
 // banner 已包了一层注册，再包一次会 duplicate factory registration 让 web boot 失败。
@@ -28,8 +28,8 @@ function apply(ctx) {
   let scheme = null
   const frames = new Set()
   const post = (frame) => { try { if (scheme && frame.contentWindow) frame.contentWindow.postMessage({ type: 'brick-mosaic:scheme', scheme }, location.origin) } catch {} }
-  // 注意：这段放在 slot 注册之后（见函数末尾）并整体 try/catch——
-  // 主题服务是可选依赖，万一 theme/change API 形态变化，也不能把侧栏入口一起带走。
+  // 放在 slot 注册之后执行并整体 try/catch——主题服务是可选依赖，
+  // 万一 theme/change API 形态变化，也不能把侧栏入口一起带走。
   const subscribeTheme = () => {
     try {
       ctx.inject(['theme'], (c) => {
@@ -41,26 +41,13 @@ function apply(ctx) {
       console.warn('[brick-mosaic] 主题订阅失败，面板仍可用（固定浅色）', e)
     }
   }
+
   function StudioPanel() {
     const ref = React.useRef(null)
     React.useEffect(() => {
       const self = ref.current
       if (self) frames.add(self)
-      function onMessage(e) {
-        const frame = ref.current
-        if (!frame || e.source !== frame.contentWindow || e.origin !== location.origin) return
-        const m = e.data
-        if (!m || m.type !== 'brick-mosaic:start' || typeof m.prompt !== 'string') return
-        try {
-          ctx.uiWorkspace.startSession(undefined, { prompt: m.prompt, whenDraftExists: 'replace' })
-          try { frame.contentWindow.postMessage({ type: 'brick-mosaic:start-ok' }, location.origin) } catch {}
-        } catch (err) {
-          console.error('[brick-mosaic] 开新对话失败', err)
-          try { frame.contentWindow.postMessage({ type: 'brick-mosaic:start-failed', message: String((err && err.message) || err) }, location.origin) } catch {}
-        }
-      }
-      addEventListener('message', onMessage)
-      return () => { removeEventListener('message', onMessage); frames.delete(self) }
+      return () => { frames.delete(self) }
     }, [])
     return h('iframe', {
       ref,
@@ -79,6 +66,5 @@ function apply(ctx) {
 }
 
 exports.isPlugin = true
-exports.inject = ['slots', 'uiWorkspace']
+exports.inject = ['slots']
 exports.apply = apply
-

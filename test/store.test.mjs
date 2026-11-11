@@ -43,6 +43,29 @@ test('store: 跨作品零件聚合（采购清单）', () => {
   store.clearAll?.()
 })
 
+test('store: 存档带马赛克 PNG（读回 / 列表标记 / 删除清理）', () => {
+  // 1×1 透明 PNG
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+  const rec = store.saveProject({ title: '带图作品', width: 32, height: 32, parts: SAMPLE_PARTS, image: png, imageWidth: 960, imageHeight: 960 })
+  assert.equal(rec.image.mime, 'image/png')
+  assert.equal(rec.image.width, 960)
+  const all = store.listProjects()
+  const item = all.find((p) => p.id === rec.id)
+  assert.equal(item.has_image, true)
+  const img = store.readImage(rec.id)
+  assert.ok(img && img.mime === 'image/png')
+  const bytes = readFileSync(img.file)
+  assert.equal(bytes[0], 0x89) // PNG magic
+  assert.equal(bytes.subarray(1, 4).toString(), 'PNG')
+  // 删除时缩略图一起清掉
+  assert.equal(store.removeProject(rec.id), true)
+  assert.equal(store.readImage(rec.id), null)
+  // 非法的 image 字段不会写文件
+  const rec2 = store.saveProject({ title: '无图', width: 32, height: 32, parts: SAMPLE_PARTS, image: 'not-a-data-url' })
+  assert.equal(rec2.image, undefined)
+  store.removeProject(rec2.id)
+})
+
 test('原项目色板完整性：11 套装，全部六元组', () => {
   const src = readFileSync(new URL('../lab/brickMosaic.js', import.meta.url), 'utf8')
   const cases = [...src.matchAll(/case "(Beatles|Monroe|IronMan|Sith|Hogwarts|Portrait|Mickey|World|ArtProject|Elvis|Batman)":\s*var partList = \[([\s\S]*?)\];/g)]

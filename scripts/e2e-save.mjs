@@ -65,7 +65,15 @@ try {
   await page.click('#buttonSaveProject')
   await page.waitForFunction(() => /已存档/.test(document.getElementById('bm-toast')?.textContent || ''), { timeout: 15000 })
   const toast = await page.textContent('#bm-toast')
-  check('存档成功提示', /已存档/.test(toast), toast)
+  check('存档成功提示（含预览图）', /已存档/.test(toast) && toast.includes('含预览图'), toast)
+
+  // 缩略图必须真的存下来并能读回
+  const listRes = await (await fetch(API + '/projects')).json()
+  const saved = (listRes.projects || []).find((p) => p.title === 'bm-save-test')
+  check('存档带 has_image', !!(saved && saved.has_image))
+  const imgRes = await fetch(API + '/project/image?id=' + saved.id)
+  const imgBuf = Buffer.from(await imgRes.arrayBuffer())
+  check('PNG 可读且是 PNG 头', imgRes.ok && imgRes.headers.get('content-type') === 'image/png' && imgBuf[0] === 0x89 && imgBuf.subarray(1, 4).toString() === 'PNG', `${imgBuf.length}B`)
 
   // 徽标应立刻变成 1
   await page.waitForFunction(() => document.getElementById('archiveCount')?.hidden === false, { timeout: 5000 })
@@ -79,19 +87,31 @@ try {
   const listText = await page.textContent('#archiveBody')
   check('标题取自文件名', listText.includes('bm-save-test'))
   check('尺寸 16×16 且 256 颗粒', listText.includes('16×16') && listText.includes('256'))
+  const thumbOk = await page.evaluate(() => {
+    const img = document.querySelector('#archiveBody img.bm-arch-thumb')
+    return !!(img && img.complete && img.naturalWidth > 0)
+  })
+  check('档案列表显示马赛克缩略图', thumbOk)
 
   await page.click('#archiveBody .bm-arch-open')
   await page.waitForSelector('#bmArchBack', { timeout: 5000 })
   const detail = await page.textContent('#archiveBody')
   const total = (detail.match(/合计\s*(\d+)/) || [])[1]
   check('详情合计 256', total === '256', `实际 ${total}`)
+  const previewOk = await page.evaluate(() => {
+    const img = document.querySelector('#archiveBody img.bm-arch-preview')
+    return !!(img && img.complete && img.naturalWidth > 0)
+  })
+  check('详情显示马赛克预览图', previewOk)
 
-  // 收尾：删掉这条测试作品
+  // 收尾：删掉这条测试作品（缩略图应一起清掉）
   await page.click('#bmArchBack')
   await page.waitForSelector('#bmArchAll', { timeout: 5000 })
   await page.click('#archiveBody .bm-arch-del')
   await page.waitForSelector('#archiveBody .bm-arch-empty', { timeout: 5000 })
   check('删除后回到空态', true)
+  const goneRes = await fetch(API + '/project/image?id=' + saved.id)
+  check('删除后缩略图也删掉了', goneRes.status === 404)
   check('无页面 JS 报错', errors.length === 0, errors.join(' | '))
 } finally {
   await browser.close()
