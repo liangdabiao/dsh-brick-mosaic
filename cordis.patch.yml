@@ -1,0 +1,5 @@
+# 砖拼工坊：brick_mosaic 档案工具 + mosaic-artist 创作技能 + 侧栏面板（原应用整体迁移）。
+# 浏览器半边由 dsh.client 声明加载。
+- insert:
+    - id: brick-mosaic
+      name: 'dsh-brick-mosaic'

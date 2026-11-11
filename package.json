@@ -1,0 +1,62 @@
+{
+  "name": "dsh-brick-mosaic",
+  "version": "0.1.0",
+  "description": "砖拼工坊 · 乐高 Art 马赛克像素画生成器：面板内 100% 本地把任意图片转成乐高马赛克（11 套装色板 + Lab 色差匹配 + 颗粒数约束艺术效果），生成 PDF/长图拼搭说明书；agent 提供创作指导与 AI 风格优化（dreamina/apiz CLI），brick_mosaic 工具管作品档案与跨作品采购清单。图片不上传。",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/host.js",
+  "exports": {
+    ".": "./src/host.js",
+    "./client": "./dist/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "icon": "./icon.svg",
+  "files": [
+    "src",
+    "dist",
+    "lib",
+    "lab",
+    "skills",
+    "locale/*.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "lego",
+    "mosaic",
+    "pixel-art",
+    "pdf"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": []
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "prepare": "npm run build",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.19.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  }
+}

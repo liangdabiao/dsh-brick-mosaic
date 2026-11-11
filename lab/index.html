@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="vendor/bootstrap.min.css" rel="stylesheet">
+    <script src="vendor/jspdf.min.js"></script>
+	<meta name="description" content="使用你自己的图片免费创建乐高马赛克，拼搭积木像素画，拼搭积木拼豆！下载拼搭说明书，用你现有的乐高Art套装拼搭出自定义作品。" />
+
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+    <!-- Cropper.js v1 CSS -->
+    <link rel="stylesheet" href="cropper.min.css">
+
+    <title>砖拼工坊 · 乐高马赛克像素画</title>
+	
+    <style>
+        .img-fluid{
+            display: none;
+        }
+
+        canvas {
+            background-color: #eeeeee; 
+            width: 100%;
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+	<div class="bm-brand" style="background:#0a0a0a;color:#fafaf8;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+		<img src="icon.svg" alt="" style="width:26px;height:26px">
+		<div style="flex:1;min-width:200px">
+			<div style="font-weight:700;font-size:14px">砖拼工坊 <span style="font-weight:400;color:#999;font-size:11px">dsh-brick-mosaic</span></div>
+			<div style="font-size:12px;color:#bbb">图片 → 乐高 Art 马赛克像素画 + 拼搭说明书。图片全程本地处理，不上传。</div>
+		</div>
+		<button id="bmAgentBtn" type="button" style="background:#C2410C;color:#fff;border:0;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer">✦ 让 agent 帮我创作</button>
+	</div>
+	<div class="container-fluid shadow mt-0 py-0 px-0">
+		<div class="container-xl">
+			<div class="row">
+				<h1 class="mb-0 mt-2">AI乐高马赛克像素画生成器</h1>
+			</div>
+		</div>
+		<div class="container-xl">
+			<nav class="navbar navbar-expand-lg navbar-light pb-1 pt-0">
+				<div class="container-fluid px-0">
+					<span class="navbar-text py-0" style="color:black">用你自己的图片创建乐高马赛克/积木像素画，使用现有乐高Art套装拼搭出自定义作品。</span>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					  <span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbarNav">
+					  <ul class="navbar-nav ms-auto">
+						<li class="nav-item">
+						  <a class="nav-link py-0" href="#" data-bs-toggle="modal" data-bs-target="#howitworksModal">使用说明</a>
+						</li>
+						<li class="nav-item">
+						  <a class="nav-link py-0" href="#" data-bs-toggle="modal" data-bs-target="#tippsModal">使用技巧</a>
+						</li>
+						<li class="nav-item">
+						  <a class="nav-link py-0" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">关于</a>
+						</li>
+					  </ul>
+					</div>
+				</div>
+			</nav>
+		</div>
+	</div>
+	
+
+    <div class="container-xl mt-3 pt-3">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="row">
+                    <label for="imageFile" class="form-label"><strong>1. 选择源图片（图片不会上传）</strong></label>
+				</div>
+				<div class="row pb-0 px-3">
+					<input class="form-control mb-2" type="file" accept="image/*" id="imageFile" name="imageFile"><!--onchange="preview_image(event)"-->
+				</div>
+				<div class="row pb-0 px-3" id="imageAdjustmentsRow" hidden>
+					<img src="" class="img-thumbnail" alt="No image chosen" id="previewImg" hidden>
+					<div class="col-2"></div>
+					<div class="col-8">
+					<canvas class="px-0" id="thumbnailCanvas" style="border:1px solid #000000;">
+						Sorry, your browser doesn't support the &lt;canvas&gt; element.
+					</canvas>
+					</div>
+					<div class="col-2"></div>
+					<div class="btn-group px-3 py-1 " role="group" aria-label="cropOrScale" id="cropOrScaleImageBtnGroup">
+					    <button type="button" class="btn btn-secondary pt-0 pb-0 active" id="cropCenterSquareButton">中心裁切</button>
+						<button type="button" class="btn btn-secondary pt-0 pb-0" id="scaleToSquareButton">缩放适应</button>
+						<button type="button" class="btn btn-secondary pt-0 pb-0" id="customCropButton">自定义裁切</button>
+					</div>
+
+					<div class="col-12 my-1">
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" id="ignoreBlackCheck" checked>
+							<label class="form-check-label" for="flexSwitchCheckDefault">忽略图片中的黑色区域</label>
+						</div>
+					</div>
+					<div class="col-12 my-1">
+						<button type="button" class="btn btn-outline-info btn-sm w-100" id="buttonAiOptimize">
+							<span id="aiOptimizeIcon">🤖</span>
+							<span id="aiOptimizeText">AI 风格优化</span>
+						</button>
+						<p class="text-muted mb-0 mt-1" style="font-size:0.75rem;" id="aiOptimizeStatus"></p>
+					</div>
+                </div>
+                <div class="row py-4">
+					<label class="form-label"><strong>2. 选择马赛克尺寸</strong></label>
+					<!--div class="col mb-1 ps-3 pe-1">
+						<div class="input-group input-group-sm">
+							<span class="input-group-text">Width</span>
+							<input type="number" class="form-control" id="widthInputValue" aria-label="MosaicWidth" placeholder="48" value="48">
+						</div>
+					</div-->
+					<div class="col mb-1 ps-3 pe-2">
+						<div class="input-group input-group-sm mb-1">
+							<span class="input-group-text pt-1 px-2">宽度</span>
+							<button class="btn btn-secondary pt-0 pb-0" type="button" id="buttonMinusWidth">-</button>
+							<input type="text" class="form-control text-center py-0 px-0" id="widthInputValue" aria-label="MosaicWidth" placeholder="48" value="48">
+							<button class="btn btn-secondary pt-0 pb-0" type="button" id="buttonPlusWidth">+</button>
+						</div>
+					</div>
+					<div class="col mb-1 pe-3 ps-2">
+						<div class="input-group input-group-sm mb-1">
+							<span class="input-group-text pt-1 px-2">高度</span>
+							<button class="btn btn-secondary pt-0 pb-0" type="button" id="buttonMinusHeight">-</button>
+							<input type="text" class="form-control text-center py-0 px-0" id="heightInputValue" aria-label="MosaicHeight" placeholder="48" value="48">
+							<button class="btn btn-secondary pt-0 pb-0" type="button" id="buttonPlusHeight">+</button>
+						</div>
+					</div>
+					<p class="fw-light mb-0 px-4 text-end" id="requiredPartsString">(3:3) 所需颗粒: 2304</p>
+                </div>
+				<div class="row pb-4">
+					<label for="partListGroup" class="form-label"><strong>3. 你拥有哪些乐高Art套装？（推荐猫王 蝙蝠侠）</strong></label>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>猫王 (31204)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusElvis">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputElvis" aria-label="numberOfElvisSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusElvis">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>蝙蝠侠 (31205)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusBatman">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputBatman" aria-label="numberOfBatmanSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusBatman">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>钢铁侠 (31199)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusIronMan">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputIronMan" aria-label="numberOfIronManSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusIronMan">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>西斯 (31200)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusSith">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputSith" aria-label="numberOfSithSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusSith">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>披头士 (31198)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusBeatles">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputBeatles" aria-label="numberOfBeatlesSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusBeatles">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>玛丽莲·梦露 (31197)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusMonroe">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputMonroe" aria-label="numberOfMonroeSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusMonroe">+</button>
+							</div>
+						</div>
+					</div>
+					
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>霍格沃茨 (31201)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusHogwarts">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputHogwarts" aria-label="numberOfHogwartsSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusHogwarts">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>米老鼠 (31202)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusMickey">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputMickey" aria-label="numberOfMickeySet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusMickey">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>自定义肖像 (41958)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusPortrait">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputPortrait" aria-label="numberOfPortraitSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusPortrait">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>世界地图 (31203)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusWorld">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputWorld" aria-label="numberOfWorldSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusWorld">+</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row mx-1 px-2">
+						<div class="col-8">
+							<label>艺术创作 (21226)</label>
+						</div>
+						<div class="col-4">
+							<div class="input-group input-group-sm mb-1">
+								<button class="btn btn-secondary py-0" type="button" id="buttonMinusArtProject">-</button>
+								<input type="text" class="form-control text-center py-0 px-0" id="inputArtProject" aria-label="numberOfArtProjectSet" placeholder="0" value="0">
+								<button class="btn btn-secondary py-0" type="button" id="buttonPlusArtProject">+</button>
+							</div>
+						</div>
+					</div>
+					
+					<p class="fw-light mb-0 px-4 text-end" id="availablePartsString">可用颗粒: <span style="color:red; font-weight:bold;">0</span></p>
+				</div>
+                <div class="row">
+					<label for="buttonCalculate" class="form-label"><strong>4. 开始计算</strong></label>
+				</div>
+				<div class="row pb-4 px-3">
+					<div class="progress px-0"  style="height: 38px;" id="calculate-progress-container" hidden>
+						<div class="progress-bar" id="calculate-progress-bar" role="progressbar" style="transition: none;"></div>
+					</div>
+					<button type="button mx-1" class="btn btn-primary" id="buttonCalculate" disabled>生成马赛克</button>
+                </div>
+                <div class="row">
+					<label for="buttonDownload" class="form-label"><strong>5. 下载说明书</strong></label>
+				</div>
+				<div class="row pb-5 mb-5 px-3">
+					<div class="progress px-0" style="height: 38px;" id="pdf-progress-container" hidden>
+						<div class="progress-bar" id="pdf-progress-bar" role="progressbar" style="transition: none;"></div>
+					</div>
+					<button type="button mx-1" class="btn btn-primary mb-2" id="buttonDownloadPDF" disabled>下载拼搭说明书 (PDF)</button>
+						<button type="button mx-1" class="btn btn-success" id="buttonDownloadImage" disabled>下载说明书长图 (PNG)</button>
+						<button type="button mx-1" class="btn btn-outline-primary mb-2" id="buttonSaveProject" disabled>💾 存到作品档案</button>
+
+				</div>
+            </div>
+            <div class="col-md-7 mb-5 pb-5">
+                <label for="previewImg" class="form-label"><strong>马赛克预览</strong></label>
+                <canvas id="previewMosaicCanvas" width="800" height="800" style="border:1px solid #000000;">
+                    抱歉，你的浏览器不支持 canvas 元素
+                </canvas>
+
+                <div class="mt-4 pt-2" id="colorAdjustmentsRow" hidden>
+                    <h6 class="mb-3"><strong>颜色调整</strong></h6>
+
+                    <div class="row">
+                    	<div class="col-4 pe-0">
+                            <label for="shadowsRange" class="form-label" id="shadowsRangeLabel">暗部: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="shadowsRange" min="-100" max="100" value="0">
+                        </div>
+
+                        <div class="col-4 pe-0">
+                            <label for="highlightsRange" class="form-label" id="highlightsRangeLabel">亮部: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="highlightsRange" min="-100" max="100" value="0">
+                        </div>
+
+                        <div class="col-4 pe-0">
+                            <label for="hueRange" class="form-label" id="hueRangeLabel">色相: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="hueRange" min="-180" max="180" value="0">
+                        </div>
+
+                        <div class="col-4 pe-0">
+                            <label for="saturationRange" class="form-label" id="saturationRangeLabel">饱和度: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="saturationRange" min="-100" max="100" value="0">
+                        </div>
+
+                        <div class="col-4 pe-0">
+                            <label for="valueRange" class="form-label" id="valueRangeLabel">明度: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="valueRange" min="-100" max="100" value="0">
+                        </div>
+
+                        <div class="col-4 pe-0">
+                            <label for="contrastRange" class="form-label" id="contrastRangeLabel">对比度: 0</label>
+                        </div>
+                        <div class="col-8">
+                            <input type="range" class="form-range" id="contrastRange" min="-100" max="100" contrast="0">
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+
+	<!-- Modal -->
+
+	<div class="modal fade" id="howitworksModal" tabindex="-1" aria-labelledby="howitworksModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg">
+		<div class="modal-content">
+		  <div class="modal-header py-1 bg-light">
+			<h4 class="modal-title" id="howitworksModalLabel">使用说明 - AI乐高马赛克像素画生成器</h4>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+		    <h5>1. 选择源图片</h5>
+			<p>使用文件选择工具从你的硬盘选择一个文件（如果用手机可以直接拍照）。图片会完全在浏览器中处理，<strong>不会上传到任何服务器</strong>！打开图片后，你会在文件输入下方看到预览。你可以选择裁切中心区域保持比例，或者拉伸缩放到目标尺寸。此外，下方滑块允许你（可选）修改亮度、对比度和颜色。如果你的图片有黑色背景（RGB=0,0,0），可以使用"忽略黑色区域"选项让算法专注于前景物体。</p>
+			<h5>2. 选择马赛克尺寸</h5>
+			<p>使用输入选择马赛克尺寸。一个乐高Art马赛克是 48 x 48 颗粒。两个套装可以拼 64 x 64 马赛克。你可以选择任意尺寸。下方会显示拼搭马赛克需要多少颗粒。</p>
+			<h5>3. 选择用于马赛克的乐高Art套装</h5>
+			<p>这里列出了可用的乐高Art套装。使用输入调整你想用几套这个套装。网站内部存储了每个套装包含哪些颜色和多少颗粒。根据你的输入显示可用颗粒总数。</p>
+			<h5>4. 计算马赛克</h5>
+			<p>点击"计算马赛克"按钮开始计算。只有当步骤3中可用颗粒数大于步骤2所需颗粒数时，按钮才可用。计算需要几秒钟完成，进度会显示出来。</p>
+			<h5>5. 下载说明书</h5>
+			<p>网站可以为你生成包含拼搭说明的PDF文件。计算完成后，你可以通过"下载拼搭说明书 (PDF)"按钮获取PDF。如果选择了"忽略黑色区域"选项，马赛克中被忽略的区域在说明书中标为"?"，可以用剩余颗粒填充这些区域。</p>
+			<h5>工作原理 - 算法介绍</h5>
+			<p>从自定义图片创建乐高艺术的第一步，是重新调整尺寸到最终马赛克尺寸。给原始颜色值添加一点随机噪声，以便后续打破颜色相等的情况。接下来，将每个像素的颜色与所选套装中所有可用颜色比较。颜色距离计算为RGB空间中的平方距离。作者尝试过不同颜色空间，但发现RGB效果就很好。实际马赛克计算分两个阶段进行。第一阶段，逐个像素用最佳可用颜色填充。如果最佳颜色因数量限制不可用，则选择下一个最佳颜色。第二阶段，如果交换两个像素之间的颗粒能改善整体颜色匹配，则进行交换。交换持续到无法再改善。这种"暴力"计算可能需要一段时间，对于较大马赛克尤其如此。</p>
+		  </div>
+		  <div class="modal-footer py-1">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+	<div class="modal fade" id="tippsModal" tabindex="-1" aria-labelledby="tippsModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg">
+		<div class="modal-content">
+		  <div class="modal-header py-1 bg-light">
+			<h4 class="modal-title" id="tippsModalLabel">使用技巧</h4>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<h5>输入图片</h5>
+			<p>获得好结果最重要的因素是输入图片本身。良好的对比度和颜色分布与你选择的乐高套装相近，有助于产生好结果。值得尝试几张不同图片和不同裁切/缩放。均匀纯色背景效果更好，因此你可以先用外部图像处理软件将背景替换为纯色。</p>
+			<p class="help-tip">• 优先选择猫王或者蝙蝠侠，这2个是最好的实现效果</p>
+      		<p class="help-tip">• 可以试试猫王或者蝙蝠侠，使用2套，这会解决大部分最难问题</p>
+
+			<h5>颜色调整</h5>
+			<p>多试几个滑块组合，看看对最终马赛克的影响。使用色相滑块调整图片整体颜色，使其更接近乐高套装中的可用颜色。亮度和对比度可用于将图片移动到与可用颜色相近的亮度范围。有时降低饱和度能获得更好效果，饱和度较低的图片会更依赖亮度差异而不是实际颜色差异。如果背景在输入图片中占很大空间，可以考虑先用外部程序将背景替换为黑色(RGB 0,0,0)，然后使用"忽略黑色区域"排除这些背景区域。算法只会填充主体，可以更好地分配可用颜色。</p>
+			<h5>乐高Art套装选择</h5>
+			<p>最终马赛克效果当然很大程度上取决于你可用的乐高Art套装选择。如果你还没有乐高Art套装（因此选择不受限），尽管尝试不同套装甚至组合它们。</p>
+			<h5>颗粒数量限制</h5>
+			<p>作者发现，当给定颜色的颗粒数量受到套装选择限制时，结果看起来更悦目。当颗粒数量不受限制时，结果通常看起来平淡，缺乏色彩对比度。可用颗粒数量的限制迫使算法使用次优颜色，从而增加了最终马赛克的色彩空间。因此，马赛克会获得更艺术的外观。你可以通过在套装数量输入框输入小数（例如 Beatles: 0.9）来进一步增强这种效果。</p>
+			<h5>多张图片</h5>
+			<p>如果你想拼搭多个马赛克（并且你拥有必要数量的乐高Art套装），建议先将所有图片拼接成一张源图片，然后相应调整马赛克尺寸和套装数量。这样，算法可以自由地在源图片之间分配可用颗粒。</p>
+			<h5>最终手工调整</h5>
+			<p>不要把生成的马赛克和说明书当成最终真理。拼搭完成后，你仍然可以交换个别颗粒来获得更美观的结果。这也是乐趣的一部分。</p>
+			<h5>其他乐高艺术马赛克网站</h5>
+			<p class="my-0">我知道还有另外两个很棒的网站，也允许你基于乐高Art生成马赛克。你也可以试试它们。</p>
+			<p class="my-0"><a href="https://lego-art-remix.debkbanerji.com/">Lego Art Remix</a></p>
+			<p><a href="https://jgassen.shinyapps.io/legoartmosaic/">LEGO Art Mosaic Generator</a></p>
+			<p><a href="https://custombrickmosaic.github.io/">LEGO  custom brick mosaic</a></p>
+		  </div>
+		  <div class="modal-footer py-1">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+	<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg">
+		<div class="modal-content">
+		  <div class="modal-header py-1 bg-light">
+			<h4 class="modal-title" id="aboutModalLabel">关于 custombrickmosaic.github.io</h4>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<div class="row">
+				<h5>关于作者</h5>
+				<div class="col-12">
+					<img src="cf_about.png" class="rounded-circle" style='float:left;width:150px;height:150px; margin-right:10px;' alt="mosaic styled portrait">
+					<p>https://liang.348349.xyz/  -- by liangdabiao ,探索40款精心打造的开源AI工具，涵盖AI动画生成、智能数据分析、自动化客服、简历智能匹配、图像处理、文本分析、语音识别、代码生成、推荐系统和自然语言处理等多个前沿领域，基于最新的深度学习与机器学习技术框架，让AI技术真正赋能您的创意表达与工作效率提升，助力个人开发者与企业实现智能化转型</p>
+					<p>"我是乐高粉丝，每天都会在小红书看乐高看MOC。我的工作是研究AI问题和提供人工智能解决方案。把我对乐高的热爱和对AI的热情结合在一起，把这个网站带给大家，真的很兴奋。我希望你们很多人喜欢使用这个网站来构建自己美丽的乐高艺术马赛克-积木像素画。"</p>
+					<p class="text-end">AI新版本：Liangdabiao,  基础版本：Christoph Fritzsch</p>
+				</div>
+			</div>
+			<h5>关于本站</h5>
+			<p>本项目的灵感和参考来自：custombrickmosaic.github.io ，自从第一款乐高Art马赛克发布以来，我一直想知道是否可以用它们从自定义图片创建马赛克。我知道这需要一个自定义算法来应对某些颜色数量有限的情况。我觉得这是一个很好的练习，可以用我在AI开发方面的经验。实现一个可用原型只花了几天 ，结果比预期好很多。所以我想分享给社区。 允许一切在浏览器中运行，AI功能直接托存在cloudflare page 免费空间。这减轻了组织云计算的负担，同时也降低了数据隐私问题（如果图片必须上传到服务器）。托管方面，我选择了cloudflare Pages，因为它支持JavaScript，支持function api,容易设置，而且免费。在2026年第一季度，我创建了这个网站的基本功能和布局。请注意，我不是专业图像AI开发者， 我相信还有一些问题需要解决...</p>
+			<p>源代码在 <a href="https://github.com/liangdabiao/brickMosaic">GitHub</a> 上开放。欢迎提交bug或增强需求。</p>
+			<h5>数据隐私</h5>
+			<p>算法完全在你的网页浏览器中运行，所有计算都在你的本地机器上执行。因此，不需要将数据上传到任何服务器，数据隐私得到保证。</p>
+		  </div>
+		  <div class="modal-footer py-1">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+	<!-- 自定义裁剪模态框 -->
+	<div class="modal fade" id="customCropModal" tabindex="-1" aria-labelledby="customCropModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-xl">
+		<div class="modal-content">
+		  <div class="modal-header py-2 bg-light">
+			<h5 class="modal-title" id="customCropModalLabel">自定义图片裁剪</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body">
+			<div class="text-center mb-3">
+				<p class="mb-1">拖动鼠标框选并调整裁剪区域，可以缩放和移动选区。</p>
+				<p class="mb-0 text-muted">裁剪框会自动保持最终马赛克的宽高比 (width:height)。</p>
+			</div>
+			<div style="width:100%;min-height:400px;max-height:70vh;">
+			  	<img id="cropImage" src="" alt="待裁剪图片" style="display:block;width:100%;">
+			</div>
+		  </div>
+		  <div class="modal-footer py-2">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelCropBtn">取消</button>
+			<button type="button" class="btn btn-primary" id="confirmCropBtn">确认裁剪</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+
+
+    <footer class="text-center text-muted py-3 mt-3" style="font-size:0.85rem;">
+      &copy; <a href="https://liangdabiao.com" target="_blank" style="text-decoration:none;color:#999;">liangdabiao.com</a>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
+	<script src="vendor/bootstrap.bundle.min.js"></script>
+    <!-- Cropper.js v1 - 图片裁剪库 -->
+    <script src="cropper.min.js"></script>
+    <script src=".\brickMosaic.js"> </script>
+
+</body>
+</html>
