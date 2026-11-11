@@ -80,7 +80,7 @@ const callApi = (path, opts) => new Promise((resolve) => {
   const vendor = await callApi('/vendor/jspdf.min.js')
   check('vendor js 可服务', vendor.statusCode === 200 && vendor.body.length > 300000)
   const cropper = await callApi('/cropper.min.js')
-  check('cropper 可服务', cropper.statusCode === 200 && cropper.body.length > 40000)
+  check('cropper 可服务（v1.6.2）', cropper.statusCode === 200 && cropper.body.includes('Cropper.js v1.6.2'))
   const proj = JSON.parse((await callApi('/api/project', { method: 'POST', body: { title: 'API作品', width: 32, height: 32, sets: { Batman: 1 }, parts: PARTS } })).body)
   check('API 存档', proj.ok === true, `id=${proj.id?.slice(0, 8)}`)
   const list = JSON.parse((await callApi('/api/projects')).body)
@@ -100,3 +100,4 @@ for (const p of store.listProjects()) store.removeProject(p.id)
 rmSync(tmp, { recursive: true, force: true })
 console.log(failed ? `\n${failed} 项失败` : '\n冒烟全部通过')
 process.exit(failed ? 1 : 0)
+
