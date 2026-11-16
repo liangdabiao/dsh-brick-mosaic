@@ -25,7 +25,7 @@ DeepSeek Harness（dsh）插件：把任意图片转成**乐高 Art 系列马赛
 ## 安装
 
 ```bash
-dsh plugin add  https://github.com/liangdabiao/dsh-brick-mosaic 
+dsh plugin --profile web add https://github.com/liangdabiao/dsh-brick-mosaic
 ```
 
 依赖自动安装（仅 `@deepseek-ai/schemastery`）。数据在 `~/.dsh/brick-mosaic/`（`DSH_HOME` 可改）。
